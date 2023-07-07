@@ -1,0 +1,45 @@
+#!E:\calculator\Scripts\python.exe
+from __future__ import absolute_import
+from __future__ import division
+from six.moves import range
+
+__version__ = "$Revision: 1.2 $"
+
+# Copyright 2006-2007 Michael M. Hoffman <hoffman+software@ebi.ac.uk>
+
+import sys
+
+import textinput
+
+def nohead(lines, filenames):
+    for textfilename, textfile in textinput.files(filenames):
+        textfile_iter = iter(textfile)
+        for line_index in range(lines):
+            next(textfile_iter)
+
+        for line in textfile_iter:
+            sys.stdout.write(line)
+
+def parse_options(args):
+    from optparse import OptionParser
+
+    global options
+
+    usage = "%prog [OPTION]... [FILE]..."
+    version = "%%prog %s" % __version__
+    parser = OptionParser(usage=usage, version=version)
+    parser.add_option("-n", "--lines", type=int, default=1, metavar="NUM",
+                      help="suppress NUM lines (default 1)")
+
+    options, args = parser.parse_args(args)
+
+    return args
+
+def main(args):
+    args = parse_options(args)
+
+    if options.lines:
+        nohead(options.lines, args)
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

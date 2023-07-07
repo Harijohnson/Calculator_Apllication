@@ -1,0 +1,68 @@
+#!E:\calculator\Scripts\python.exe
+from __future__ import absolute_import
+from __future__ import division
+
+"""
+filter: filter tab-delimited files with Python expressions
+
+CODESTR is an expression such as:
+
+default: "int(index) > 42"
+--no-header: "int(_[2]) > 42"
+"""
+
+__version__ = "$Revision: 1.8 $"
+
+# Copyright 2005-2007 Michael M. Hoffman <hoffman+software@ebi.ac.uk>
+
+import sys
+
+import tabdelim
+
+# don't shadow builtin
+def run_filter(codestr, *filenames):
+    code = compile(codestr, "<string>", "eval")
+
+    reader = options.reader_func(filenames)
+    writer = reader.writer()
+
+    listinput = options.reader_func == tabdelim.listinput
+
+    if listinput:
+        for row in reader:
+            if eval(code, globals(), dict(_=row)):
+                writer.writerow(row)
+    else:
+        for row in reader:
+            if eval(code, globals(), row):
+                writer.writerow(row)
+
+def parse_options(args):
+    from optparse import OptionParser
+
+    global options
+
+    usage = "%prog [OPTION]... CODESTR [FILE...]"
+    version = "%%prog %s" % __version__
+    parser = OptionParser(usage=usage, version=version)
+
+    parser.add_option("-H", "--no-header", action="store_const",
+                      dest="reader_func",
+                      const=tabdelim.listinput, default=tabdelim.dictinput,
+                      help="input does not contain a header line")
+
+    options, args = parser.parse_args(args)
+
+    if len(args) < 1:
+        parser.print_usage()
+        sys.exit(1)
+
+    return args
+
+def main(args):
+    args = parse_options(args)
+
+    return run_filter(*args)
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
